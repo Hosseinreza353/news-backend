@@ -1,0 +1,10 @@
+**/.git
+**/.gitignore
+**/.vscode
+**/coverage
+Dockerfile
+README.md
+docker-compose.yml
+poetry.lock
+pyproject.toml
+local

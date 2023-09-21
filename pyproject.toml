@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "news"
+version = "0.1.0"
+description = ""
+authors = ["Hossein-Gholami <gholami.hosseinreza@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+scrapy = "^2.9.0"
+python-dotenv = "^1.0.0"
+black = {extras = ["d"], version = "^23.9.0"}
+fastapi = {extras = ["all"], version = "^0.97.0"}
+pymongo = "^4.3.3"
+jdatetime = "^4.1.1"
+arrow = "^1.2.3"
+redis = "^5.0.0"
+minio = "^7.1.16"
+elasticsearch = "^8.9.0"
+tenacity = "^8.2.3"
+aiofiles = "^23.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
