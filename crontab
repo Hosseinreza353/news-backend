@@ -1,1 +1,1 @@
-*/5 * * * * cd /usr/app/plw_rbtv77/plw_rbtv77 && /usr/local/bin/python main.py > /usr/app/plw_rbtv77/crawler.log 2>&1
+*/5 * * * * cd /usr/app/news_crawl/news_crawl && /usr/local/bin/python main.py > /usr/app/news_crawl/crawler.log 2>&1

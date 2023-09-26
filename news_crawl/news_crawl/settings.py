@@ -1,8 +1,3 @@
-import os
-from pathlib import Path
-from dotenv import dotenv_values
-from redis.asyncio import Redis
-
 # Scrapy settings for news_crawl project
 #
 # For simplicity, this file contains only settings considered important or
@@ -96,20 +91,3 @@ ITEM_PIPELINES = {
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
-
-# Getting configs from an env file
-HOME = Path(__file__).resolve().parents[2]
-ENV_CONFS = dotenv_values(f"{HOME / os.environ.get('ENV_FILE', '.env')}")
-REDIS_HOST = ENV_CONFS.get("REDIS_HOST", "localhost")
-REDIS_PORT = ENV_CONFS.get("REDIS_PORT", 6379)
-REDIS_DB = int(ENV_CONFS.get("REDIS_DB", 0))
-REDIS_PASSWORD = ENV_CONFS.get("REDIS_PASSWORD", "test")
-redis = Redis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    db=REDIS_DB,
-    password=REDIS_PASSWORD,
-    decode_responses=True,
-    encoding="utf-8",
-)
-topic = ENV_CONFS.get("REDIS_TOPIC", "news_topic")

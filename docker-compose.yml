@@ -6,7 +6,7 @@ networks:
     external: false
   news-mongodb:
     name: news-mongodb
-    external: true
+    external: false
   news-minio:
     name: news-minio
     external: true

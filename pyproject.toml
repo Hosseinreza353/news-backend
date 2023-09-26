@@ -19,6 +19,9 @@ minio = "^7.1.16"
 elasticsearch = "^8.9.0"
 tenacity = "^8.2.3"
 aiofiles = "^23.2.1"
+motor = "^3.3.1"
+miniopy-async = "^1.15"
+rocketry = "^2.5.1"
 
 
 [build-system]

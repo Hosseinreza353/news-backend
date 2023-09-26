@@ -2,26 +2,29 @@ import uuid
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+
 class NewsBase(BaseModel):
-    origin: str = Field(...)
+    publisher: str = Field(...)
     header: str = Field(...)
     abstract: str = Field(...)
     news_url: str = Field(...)
     thumbnail_url: str = Field(...)
     body: str = Field(...)
+    category: str = Field(...)
     keywords: List[str] = Field(...)
 
     class Config:
         allow_population_by_field_name = True
         schema_extra = {
             "example": {
-                "origin": "IRNA",
+                "publisher": "IRNA",
                 "header": "Real state prices skyrocketing.",
                 "abstract": "some abstract...",
                 "news_url": "https://example.com/news/1/",
                 "thumbnail_url": "https://example.com/news/1/image.jpeg",
                 "body": "Real state prices skyrocketing...",
-                "keywords": ["kw1", "kw2"],
+                "category": "Society",
+                "keywords": ["Society"],
             }
         }
 

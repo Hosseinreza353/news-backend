@@ -1,26 +1,77 @@
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
-from typing import List
+from uuid import UUID
+from typing import List, Tuple, Optional
 
 from src.models import News, NewsBase
 
 router = APIRouter()
 
-@router.post("/", response_description="Create a news", status_code=status.HTTP_201_CREATED, response_model=News)
+
+@router.post(
+    "/",
+    response_description="Create a news",
+    status_code=status.HTTP_201_CREATED,
+    response_model=News,
+)
 def create_news(request: Request, news: NewsBase = Body(...)):
     news = News(**news.dict())
     news = jsonable_encoder(news)
     new_news = request.app.database["news"].insert_one(news)
-    created_news = request.app.database["news"].find_ond(
-        {"_id": new_news.inserted_id}
-    )
+    created_news = request.app.database["news"].find_one({"_id": new_news.inserted_id})
     return created_news
 
+
 @router.get("/", response_description="List all news", response_model=List[News])
-def list_news(request: Request):
-    news = list(request.app.database["news"].find(limit=100))
+def list_news(
+    request: Request, page: int = 1, size: int = 10, category: Optional[str] = None
+):
+    find = {}
+    if category:
+        find = {"category": category}
+    limit = size if size >= 1 else 10
+    page -= 1
+    skip = 0 if page <= 0 else page * limit
+    news = list(request.app.database["news"].find(find, skip=skip, limit=limit))
     return news
 
+
+@router.get(
+    "/categories",
+    response_description="List all categories",
+    response_model=List[Tuple[str, str]],
+)
+def get_categories(request: Request):
+    cats_fa_en = {
+        "Society": "جامعه",
+        "Economy": "اقتصاد",
+        "markets": "بازار",
+        "Sport": "ورزش",
+        "Politic": "سیاست",
+        "International": "بین الملل",
+    }
+    all_categories = request.app.database["news"].find({}, {"category": 1, "_id": 0})
+    cats = set()
+    for cat in all_categories:
+        cats.add(cat["category"])
+    return [(cat, cats_fa_en[cat]) for cat in list(cats)]
+
+
+@router.get("/{news_id}", response_description="Get a news detail", response_model=News)
+def get_news(request: Request, news_id: UUID):
+    found_news = request.app.database["news"].find_one({"_id": str(news_id)})
+    if not found_news:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="news not found"
+        )
+    return found_news
+
+
+# @router.get("/categories", response_description="List all categories")
+# def get_categories(request: Request):
+#     all_categories = request.app.database["news"].find({}, {"category": 1, "_id": 0})
+#     print(all_categories, flush=True)
+#     return "Heellloo"
 
 
 # @router.post("/", response_description="Create a new book", status_code=status.HTTP_201_CREATED, response_model=Book)
