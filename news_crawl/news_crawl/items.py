@@ -11,4 +11,5 @@ class NewsItem:
     thumbnail_url: str
     body: str
     category: str
+    time: str
     keywords: List[str]
