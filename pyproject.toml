@@ -22,6 +22,7 @@ aiofiles = "^23.2.1"
 motor = "^3.3.1"
 miniopy-async = "^1.15"
 rocketry = "^2.5.1"
+nest-asyncio = "^1.5.8"
 
 
 [build-system]

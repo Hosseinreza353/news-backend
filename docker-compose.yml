@@ -33,28 +33,6 @@ services:
       - mongo-data:/data/db
     networks:
       - news-mongodb
-
-  news-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image:
-      ${IMAGE_NAME:-news-worker}:${TAG:-1.0}
-    container_name: ${CONTAINER_NAME:-news-worker-1}
-    environment:
-      - ENV_FILE=.env
-    restart: always
-    depends_on:
-      - mongodb
-    command: bash -c "service cron start"
-    working_dir: /usr/app
-    volumes:
-      - ./:/usr/app
-    networks:
-      - news-default
-      - news-mongodb
-      - news-minio
-      - news-redis
   
   news-web:
     build:
@@ -71,7 +49,8 @@ services:
     working_dir: /usr/app
     volumes:
       - ./:/usr/app
-    command: bash -c "cd /usr/app && python -m uvicorn src.api:app --host 0.0.0.0"
+    # command: bash -c "cd /usr/app && python -m uvicorn src.api:app --host 0.0.0.0"
+    entrypoint: ["/bin/sh", "entrypoint.sh"]
     ports:
       - ${PORT_EXPOSED:-8000}:8000
     networks:

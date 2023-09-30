@@ -1,5 +1,6 @@
-from redis import Redis
-from pymongo import MongoClient
+from redis.asyncio import Redis
+from motor.motor_asyncio import AsyncIOMotorClient
+# from pymongo import MongoClient
 
 from src import config, redis_consumer, handlers
 
@@ -14,11 +15,12 @@ class MessageBus:
             mongo_conf.host,
             mongo_conf.port,
         )
-        self.mongodb_client = MongoClient(mongo_conn_str)
-        self.db = self.mongodb_client[mongo_conf.db]
+        # self.mongodb_client = MongoClient(mongo_conn_str)
+        self.db_client = AsyncIOMotorClient(mongo_conn_str, maxPoolSize=10, minPoolSize=10)
+        self.db = self.db_client[mongo_conf.db]
 
         redis_config = self.config.redis
-        redis_conn = Redis(
+        self.rc = Redis(
             host=redis_config.host,
             port=redis_config.port,
             db=redis_config.db,
@@ -28,5 +30,5 @@ class MessageBus:
         )
 
         self.redis_consumer = redis_consumer.RedisConsumer(
-            redis_conn, redis_config.topic, handler=lambda news: handlers.add_news(self.db, news)
+            self.rc, redis_config.topic, handler=lambda news: handlers.add_news(self.db, news)
         )

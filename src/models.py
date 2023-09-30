@@ -11,6 +11,7 @@ class NewsBase(BaseModel):
     thumbnail_url: str = Field(...)
     body: str = Field(...)
     category: str = Field(...)
+    time: str = Field(...)
     keywords: List[str] = Field(...)
 
     class Config:
@@ -24,6 +25,7 @@ class NewsBase(BaseModel):
                 "thumbnail_url": "https://example.com/news/1/image.jpeg",
                 "body": "Real state prices skyrocketing...",
                 "category": "Society",
+                "time": "1402-01-01 12:01",
                 "keywords": ["Society"],
             }
         }

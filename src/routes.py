@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Body, Request, Response, HTTPException, status
+from fastapi import APIRouter, Body, Request, HTTPException, status
 from fastapi.encoders import jsonable_encoder
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from uuid import UUID
 from typing import List, Tuple, Optional
 
@@ -14,25 +15,28 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     response_model=News,
 )
-def create_news(request: Request, news: NewsBase = Body(...)):
+async def create_news(request: Request, news: NewsBase = Body(...)):
+    dbc: AsyncIOMotorDatabase = request.app._db
     news = News(**news.dict())
     news = jsonable_encoder(news)
-    new_news = request.app.database["news"].insert_one(news)
-    created_news = request.app.database["news"].find_one({"_id": new_news.inserted_id})
+    new_news = await dbc["news"].insert_one(news)
+    created_news = await dbc["news"].find_one({"_id": new_news.inserted_id})
     return created_news
 
 
 @router.get("/", response_description="List all news", response_model=List[News])
-def list_news(
+async def list_news(
     request: Request, page: int = 1, size: int = 10, category: Optional[str] = None
 ):
+    dbc: AsyncIOMotorDatabase = request.app._db
     find = {}
     if category:
         find = {"category": category}
     limit = size if size >= 1 else 10
     page -= 1
     skip = 0 if page <= 0 else page * limit
-    news = list(request.app.database["news"].find(find, skip=skip, limit=limit))
+    # news = list(await dbc["news"].find(find, skip=skip, limit=limit))
+    news = await dbc["news"].find(find).sort('time', -1).skip(skip).limit(limit).to_list(length=None)
     return news
 
 
@@ -41,7 +45,8 @@ def list_news(
     response_description="List all categories",
     response_model=List[Tuple[str, str]],
 )
-def get_categories(request: Request):
+async def get_categories(request: Request):
+    dbc: AsyncIOMotorDatabase = request.app._db
     cats_fa_en = {
         "Society": "جامعه",
         "Economy": "اقتصاد",
@@ -50,7 +55,7 @@ def get_categories(request: Request):
         "Politic": "سیاست",
         "International": "بین الملل",
     }
-    all_categories = request.app.database["news"].find({}, {"category": 1, "_id": 0})
+    all_categories = await dbc["news"].find({}, {"category": 1, "_id": 0}).to_list(length=None)
     cats = set()
     for cat in all_categories:
         cats.add(cat["category"])
@@ -58,8 +63,9 @@ def get_categories(request: Request):
 
 
 @router.get("/{news_id}", response_description="Get a news detail", response_model=News)
-def get_news(request: Request, news_id: UUID):
-    found_news = request.app.database["news"].find_one({"_id": str(news_id)})
+async def get_news(request: Request, news_id: UUID):
+    dbc: AsyncIOMotorDatabase = request.app._db
+    found_news = await dbc["news"].find_one({"_id": str(news_id)})
     if not found_news:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="news not found"
