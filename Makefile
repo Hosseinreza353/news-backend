@@ -1,3 +1,10 @@
+.PHONY: all
+
+# in addition to up-infra, add a health-check
+all:
+	up-infra
+	deps-export
+	up-web
 
 deps-export:
 	poetry export --without-hashes --format=requirements.txt > requirements.txt
@@ -5,8 +12,9 @@ deps-export:
 stop-app:
 	docker-compose stop news-web news-worker
 
+# also add minio to infra
 up-infra:
-	docker-compose up -d mongodb redis minio
+	docker-compose up -d mongodb redis
 
 up-web:
 	docker-compose up -d --build news-web
@@ -20,3 +28,6 @@ exec-redis:
 
 crawl:
 	cd news_crawl/news_crawl && poetry run python main.py
+
+running:
+	docker-compose ps --status=running | awk '{print NR,$$1,$$2}'
