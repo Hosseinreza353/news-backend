@@ -14,6 +14,9 @@ def create_start_app_handler(app: FastAPI) -> Callable:
             app._db = bus.db
             # await bus.db.drop_collection("news")
             app._redis_consumer_task = asyncio.create_task(app._bus.redis_consumer.start())
+            app._bus.scheduler.add_crawler_task()
+            asyncio.create_task(app._bus.scheduler.engine.serve())
+            # asyncio.create_task(asyncio.to_thread(app._bus.scheduler.engine.run))
         except Exception as e:
             print(f"error in app startup. {e}")
             raise SystemExit(1)
@@ -26,6 +29,7 @@ def create_start_app_handler(app: FastAPI) -> Callable:
 def create_stop_app_handler(app: FastAPI) -> Callable:
     def stop_app() -> None:
         try:
+            app._bus.scheduler.engine.session.shut_down()
             app._redis_consumer_task.cancel()
             app._db_client.close()
         except Exception as e:

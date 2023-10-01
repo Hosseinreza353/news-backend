@@ -2,6 +2,7 @@ import asyncio
 import json
 from redis.asyncio import Redis
 from typing import Awaitable
+# import threading
 
 
 class RedisConsumer:
@@ -16,6 +17,7 @@ class RedisConsumer:
             await pubsub.subscribe(self.topic)
             async for msg in pubsub.listen():
                 if msg["type"] == "message":
+                    # print(threading.get_ident(), end=" | ")
                     print("+Consumed data from redis", flush=True)
                     await self.handler(json.loads(msg["data"]))
         except asyncio.CancelledError as e:

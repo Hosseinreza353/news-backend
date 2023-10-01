@@ -18,7 +18,7 @@ redis_config = RedisConf(
     ENV_CONFS.get("REDIS_PASSWORD", "test"),
     ENV_CONFS.get("REDIS_TOPIC", "news")
 )
-print(redis_config, flush=True)
+# print(redis_config, flush=True)
 
 class RedisMixin(object):
     rc = None
