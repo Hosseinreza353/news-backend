@@ -47,7 +47,7 @@ class MehrNewsSpider(RedisMixin, Spider):
     async def spider_closed(self, spider, reason='finished'):
         if reason == 'finished':
             await spider.update_last_news_dts(spider.max_topic_dts)
-            print(reason, 'spider closed')
+            print(reason, 'spider closed.', dt.utcnow())
     
     async def item_scraped(self, item, response, spider):
         # print(type(item), type(spider))

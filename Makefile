@@ -10,7 +10,7 @@ deps-export:
 	poetry export --without-hashes --format=requirements.txt > requirements.txt
 
 stop-app:
-	docker-compose stop news-web news-worker
+	docker-compose stop news-web
 
 # also add minio to infra
 up-infra:
