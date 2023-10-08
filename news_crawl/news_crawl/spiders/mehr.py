@@ -90,25 +90,35 @@ class MehrNewsSpider(RedisMixin, Spider):
             )
 
     def parse_news(self, response: HtmlResponse, topic: str, dt: str):
+        def cvrt_txt(str_list, det=" "):
+            return det.join([_.strip() for _ in str_list if _.strip() != '']).strip().replace("\r\n", "").replace("\n", "")
+        
         article = response.css("article#item")
-        item_header = self.convert_text(article.css("div.item-header *::text").extract())
+        item_breadcrumb = article.css("div.item-header > div.item-nav ol.breadcrumb li a::text").extract()
+        item_date = article.css("div.item-header > div.item-nav div.item-date span::text").extract_first()
+        item_title = cvrt_txt(article.css("div.item-header div.item-title *::text").extract())
         item_summary = article.css("div.item-summary")
         thumbnail_url = item_summary.css(
             "figure.item-img img::attr(src)"
         ).extract_first()
-        summary = self.convert_text(item_summary.css("p.summary *::text").extract())
+        summary = cvrt_txt(item_summary.css("p.summary *::text").extract())
         ps = article.css("div.item-body > div.item-text p")
-        full_text = "\n".join([self.convert_text(p.css("*::text").extract()) for p in ps])
+        full_text = "\n".join([cvrt_txt(p.css("*::text").extract()) for p in ps])
+        tags = article.css("section.tags ul li a::text").extract()
+        ks = [
+            *item_breadcrumb,
+            *tags,
+        ]
         yield NewsItem(
             publisher="mehrnews",
-            header=item_header,
+            header=f'{"/".join(item_breadcrumb)} {item_date} | {item_title}',
             abstract=summary,
             news_url=response.url,
             thumbnail_url=thumbnail_url,
             body=full_text,
             category=topic,
             time=dt,
-            keywords=["Mehrnews", "مهرنیوز", topic, topics_fa_en.get(topic, topic)],
+            keywords=ks,  # ["Mehrnews", "مهرنیوز", topic, topics_fa_en.get(topic, topic)]
         )
 
     async def filter_news(self, links, times, topic):
@@ -121,6 +131,3 @@ class MehrNewsSpider(RedisMixin, Spider):
         to_ret = [a_t for a_t in zipped if a_t[1] > last_dt]
         # print("random log3", len(to_ret))
         return [_[0] for _ in to_ret], [_[1] for _ in to_ret]
-
-    def convert_text(self, str_list, det=" "):
-        return det.join(str_list).replace("\r\n", "").replace("\n", "")

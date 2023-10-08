@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, NonNegativeInt
 from typing import Optional, List
 
 
@@ -9,7 +9,7 @@ class NewsBase(BaseModel):
     abstract: str = Field(...)
     news_url: str = Field(...)
     thumbnail_url: str = Field(...)
-    body: str = Field(...)
+    body: Optional[str] = Field(default="")
     category: str = Field(...)
     time: str = Field(...)
     keywords: List[str] = Field(...)
@@ -33,6 +33,14 @@ class NewsBase(BaseModel):
 class News(NewsBase):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     reads_count: int = Field(default=0)
+
+class PaginatedNews(BaseModel):
+    items: List[News]
+    total: NonNegativeInt
+    page: NonNegativeInt
+    size: NonNegativeInt
+    next: NonNegativeInt
+    prev: NonNegativeInt
 
 # class Book(BaseModel):
 #     id: str = Field(default_factory=uuid.uuid4, alias="_id")

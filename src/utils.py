@@ -1,4 +1,5 @@
 import asyncio
+import pymongo
 from fastapi import FastAPI
 from typing import Callable
 
@@ -13,6 +14,8 @@ def create_start_app_handler(app: FastAPI) -> Callable:
             app._db_client = bus.db_client
             app._db = bus.db
             # await bus.db.drop_collection("news")
+            # await bus.db.create_collection("news")
+            await bus.db["news"].create_index([("time", pymongo.DESCENDING)], background=True)
             app._redis_consumer_task = asyncio.create_task(app._bus.redis_consumer.start())
             app._bus.scheduler.add_crawler_task()
             asyncio.create_task(app._bus.scheduler.engine.serve())

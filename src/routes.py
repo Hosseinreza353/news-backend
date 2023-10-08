@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Body, Request, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pydantic import PositiveInt
+from math import ceil
 from uuid import UUID
 from typing import List, Tuple, Optional
 
-from src.models import News, NewsBase
+from src.models import News, NewsBase, PaginatedNews
 
 router = APIRouter()
 
@@ -24,20 +26,23 @@ async def create_news(request: Request, news: NewsBase = Body(...)):
     return created_news
 
 
-@router.get("/", response_description="List all news", response_model=List[News])
+@router.get("/", response_description="List all news", response_model=PaginatedNews)
 async def list_news(
-    request: Request, page: int = 1, size: int = 10, category: Optional[str] = None
+    request: Request, page: PositiveInt = 1, size: PositiveInt = 10, category: Optional[str] = None
 ):
     dbc: AsyncIOMotorDatabase = request.app._db
     find = {}
     if category:
         find = {"category": category}
-    limit = size if size >= 1 else 10
-    page -= 1
-    skip = 0 if page <= 0 else page * limit
-    # news = list(await dbc["news"].find(find, skip=skip, limit=limit))
-    news = await dbc["news"].find(find).sort('time', -1).skip(skip).limit(limit).to_list(length=None)
-    return news
+    cnt = await dbc["news"].count_documents(find)
+    total_pages = ceil(cnt / size)  # cnt // size + (1 if cnt % size else 0)
+    page = min(total_pages, page)
+    page = max(page, 1)
+    limit = size
+    skip = (page-1) * limit
+    # .sort('time', -1) was deleted; .find(...).sort(...).skip(...) -> find(...).skip(...)
+    news = await dbc["news"].find(find, {"body": 0}).sort('time', -1).skip(skip).limit(limit).to_list(length=None)
+    return PaginatedNews(items=news, total=total_pages, page=page, size=size, next=min(total_pages, page+1), prev=max(page-1, 1))
 
 
 @router.get(
