@@ -1,9 +1,9 @@
 version: '3.9'
 
 networks:
-  news-default:
-    name: news-default
-    external: false
+  news:
+    name: news
+    external: true
   news-mongodb:
     name: news-mongodb
     external: false
@@ -53,7 +53,7 @@ services:
     ports:
       - ${PORT_EXPOSED:-8000}:8000
     networks:
-      - news-default
+      - news
       - news-mongodb
       - news-minio
       - news-redis
