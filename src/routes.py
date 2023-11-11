@@ -28,12 +28,14 @@ async def create_news(request: Request, news: NewsBase = Body(...)):
 
 @router.get("/", response_description="List all news", response_model=PaginatedNews)
 async def list_news(
-    request: Request, page: PositiveInt = 1, size: PositiveInt = 10, category: Optional[str] = None
+    request: Request, page: PositiveInt = 1, size: PositiveInt = 10, category: Optional[str] = None, search: Optional[str] = None,
 ):
     dbc: AsyncIOMotorDatabase = request.app._db
     find = {}
     if category:
-        find = {"category": category}
+        find["category"] = category
+    # if search:
+    #     find["$in"]
     cnt = await dbc["news"].count_documents(find)
     total_pages = ceil(cnt / size)  # cnt // size + (1 if cnt % size else 0)
     page = min(total_pages, page)
@@ -42,6 +44,17 @@ async def list_news(
     skip = (page-1) * limit
     # .sort('time', -1) was deleted; .find(...).sort(...).skip(...) -> find(...).skip(...)
     news = await dbc["news"].find(find, {"body": 0}).sort('time', -1).skip(skip).limit(limit).to_list(length=None)
+
+    # find_condition = {}
+    # if authors is not None:
+    #     find_condition["author"] = {"$in": authors}
+    # if genres is not None:
+    #     find_condition["genres"] = {"$in": genres}
+    # if published_year is not None:
+    #     find_condition["published_year"] = published_year
+    # cursor = self._client[DB][BOOKS_COLLECTION].find(find_condition, {"_id": 0})
+    # return [doc async for doc in cursor]
+
     return PaginatedNews(items=news, total=total_pages, page=page, size=size, next=min(total_pages, page+1), prev=max(page-1, 1))
 
 
