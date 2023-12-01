@@ -12,7 +12,7 @@ class NewsBase(BaseModel):
     body: Optional[str] = Field(default="")
     category: str = Field(...)
     time: str = Field(...)
-    keywords: List[str] = Field(...)
+    keywords: List[str] = Field(default=[])
 
     class Config:
         allow_population_by_field_name = True

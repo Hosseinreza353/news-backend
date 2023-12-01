@@ -80,6 +80,15 @@ async def get_categories(request: Request):
     return [(cat, cats_fa_en[cat]) for cat in list(cats)]
 
 
+@router.get("/banner", response_description="banner news", response_model=List[News])
+async def get_banner(request: Request):
+    dbc: AsyncIOMotorDatabase = request.app._db
+    find = {}
+    limit = 6
+    news = await dbc["news"].find(find, {"body": 0, "keywords": 0}).sort('time', -1).limit(limit).to_list(length=None)
+    return news
+
+
 @router.get("/{news_id}", response_description="Get a news detail", response_model=News)
 async def get_news(request: Request, news_id: UUID):
     dbc: AsyncIOMotorDatabase = request.app._db
